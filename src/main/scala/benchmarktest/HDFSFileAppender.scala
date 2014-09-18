@@ -33,26 +33,32 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
   val outputStream = dfs.create(new Path(path))
   val stopWatch = new Stopwatch()
   val timer = new Timer()
-  val countInBatch = new AtomicInteger(0)
+  var countInBatch = 0
+  var last = 0l
 
   def appendEvents(): Unit = {
     timer.scheduleAtFixedRate(new TimerTask {
       override def run(): Unit = {
         stopWatch.reset()
         outputStream.synchronized {
+
+        }
+      }
+    }, timeBetweenFlushes, timeBetweenFlushes)
+    last = System.currentTimeMillis()
+    (1 to total).foreach(x => {
+      outputStream.synchronized {
+        println("Writing")
+        val current = System.currentTimeMillis()
+        if (current - last > timeBetweenFlushes) {
           stopWatch.start()
           outputStream.hflush()
           stopWatch.stop()
           println("Time for batch: " + stopWatch.elapsedMillis() + " with " + countInBatch.get())
-          countInBatch.set(0)
+          countInBatch = 0
         }
-      }
-    }, timeBetweenFlushes, timeBetweenFlushes)
-    (1 to total).foreach(x => {
-      outputStream.synchronized {
-        println("Writing")
         outputStream.write(buffer)
-        countInBatch.incrementAndGet()
+        countInBatch += 1
       }
     })
   }
