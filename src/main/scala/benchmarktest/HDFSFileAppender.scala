@@ -54,7 +54,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
           stopWatch.start()
           outputStream.hflush()
           stopWatch.stop()
-          println("Time for batch: " + stopWatch.elapsedMillis() + " with " + countInBatch.get())
+          println("Time for batch: " + stopWatch.elapsedMillis() + " with " + countInBatch)
           countInBatch = 0
         }
         outputStream.write(buffer)
