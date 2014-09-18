@@ -37,20 +37,13 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
   var last = 0l
 
   def appendEvents(): Unit = {
-    timer.scheduleAtFixedRate(new TimerTask {
-      override def run(): Unit = {
-        stopWatch.reset()
-        outputStream.synchronized {
-
-        }
-      }
-    }, timeBetweenFlushes, timeBetweenFlushes)
     last = System.currentTimeMillis()
     (1 to total).foreach(x => {
       outputStream.synchronized {
         println("Writing")
         val current = System.currentTimeMillis()
         if (current - last > timeBetweenFlushes) {
+          stopWatch.reset()
           stopWatch.start()
           outputStream.hflush()
           stopWatch.stop()
