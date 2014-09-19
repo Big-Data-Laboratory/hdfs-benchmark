@@ -39,7 +39,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
 
   def appendEvents(i: Int): Unit = {
     val outputStream = dfs.create(new Path(path + "-" + i))
-    val bufferOfTimes = new ArrayBuffer[Int]()
+    val bufferOfTimes = new ArrayBuffer[Long]()
     last = System.currentTimeMillis()
     (1 to 5).foreach {_ =>
       (1 to total/5).foreach(x => {
@@ -50,7 +50,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
           outputStream.hflush()
           stopWatch.stop()
           last = current
-          buffer ++ bufferOfTimes
+          bufferOfTimes += stopWatch.elapsedMillis()
           countInBatch = 0
         }
         outputStream.write(buffer)
@@ -58,7 +58,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
       })
       Thread.sleep(2500)
     }
-    println("Writes for stream " + i + ": " + bufferOfTimes.mkString)
+    println("Writes for stream " + i + ": " + bufferOfTimes.mkString(","))
     outputStream.close()
   }
 }
