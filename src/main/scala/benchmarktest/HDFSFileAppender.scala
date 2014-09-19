@@ -57,5 +57,6 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
       })
       Thread.sleep(2500)
     }
+    outputStream.close()
   }
 }
