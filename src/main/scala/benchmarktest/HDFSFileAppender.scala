@@ -30,29 +30,32 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
   val buffer = new Array[Byte](bufferSize)
   new Random().nextBytes(buffer)
   val dfs = new Path(path).getFileSystem(new Configuration())
-  val outputStream = dfs.create(new Path(path))
+
   val stopWatch = new Stopwatch()
   val timer = new Timer()
   var countInBatch = 0
   var last = 0l
 
-  def appendEvents(): Unit = {
-    last = System.currentTimeMillis()
-    (1 to total).foreach(x => {
-      println("Writing")
-      val current = System.currentTimeMillis()
-      if (current - last > timeBetweenFlushes) {
-        stopWatch.reset()
-        stopWatch.start()
-        outputStream.hflush()
-        stopWatch.stop()
-        last = current
-        println("Time for batch: " + stopWatch.elapsedMillis() + " with " + countInBatch)
-        countInBatch = 0
-      }
-
-      outputStream.write(buffer)
-      countInBatch += 1
-    })
+  def appendEvents(i: Int): Unit = {
+    val outputStream = dfs.create(new Path(path + "-" + i))
+    (1 to 5).foreach {_ =>
+      last = System.currentTimeMillis()
+      (1 to total/5).foreach(x => {
+        println("Writing")
+        val current = System.currentTimeMillis()
+        if (current - last > timeBetweenFlushes) {
+          stopWatch.reset()
+          stopWatch.start()
+          outputStream.hflush()
+          stopWatch.stop()
+          last = current
+          println("Time for batch: " + stopWatch.elapsedMillis() + " with " + countInBatch)
+          countInBatch = 0
+        }
+        outputStream.write(buffer)
+        countInBatch += 1
+      })
+      Thread.sleep(2500)
+    }
   }
 }

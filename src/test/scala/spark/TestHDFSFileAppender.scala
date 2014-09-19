@@ -33,7 +33,7 @@ class TestHDFSFileAppender {
     val total = System.getProperty("total", "100000")
     val appender = new HDFSFileAppender(bufferSize.toInt, timeBetweenFlushes.toLong, path,
       total.toInt)
-    appender.appendEvents()
+    (1 to 5).foreach(appender.appendEvents(_))
   }
 
 }
