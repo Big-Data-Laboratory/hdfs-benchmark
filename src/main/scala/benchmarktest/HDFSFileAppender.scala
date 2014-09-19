@@ -7,6 +7,7 @@ import com.google.common.base.Stopwatch
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 /*
@@ -38,10 +39,10 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
 
   def appendEvents(i: Int): Unit = {
     val outputStream = dfs.create(new Path(path + "-" + i))
+    val bufferOfTimes = new ArrayBuffer[Int]()
+    last = System.currentTimeMillis()
     (1 to 5).foreach {_ =>
-      last = System.currentTimeMillis()
       (1 to total/5).foreach(x => {
-        println("Writing")
         val current = System.currentTimeMillis()
         if (current - last > timeBetweenFlushes) {
           stopWatch.reset()
@@ -49,7 +50,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
           outputStream.hflush()
           stopWatch.stop()
           last = current
-          println("Time for batch: " + stopWatch.elapsedMillis() + " with " + countInBatch)
+          buffer ++ bufferOfTimes
           countInBatch = 0
         }
         outputStream.write(buffer)
@@ -57,6 +58,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
       })
       Thread.sleep(2500)
     }
+    println("Writes for stream " + i + ": " + bufferOfTimes.mkString)
     outputStream.close()
   }
 }
