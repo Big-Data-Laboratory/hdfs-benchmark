@@ -1,5 +1,6 @@
 package benchmarktest
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Timer, TimerTask}
 
@@ -60,8 +61,8 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
       countInBatch += 1
     })
     println("Writes for stream " + i + ": " + hflushTimes.mkString(","))
-    println("Total hflush Time: " + hflushTimes.sum + " for " + hflushTimes.size + "hflushes")
-    println("Average write rate: " + ((i * total)/1024*1024)/(hflushTimes.sum + writeTimes.sum))
+    println("Total hflush Time: " + hflushTimes.sum + " for " + hflushTimes.size + " hflushes")
+    println("Average write rate: " + ((bufferSize * total) / (1024 * 1024)) / ((hflushTimes.sum + writeTimes.sum)/1000.0) + " MB/s")
     outputStream.close()
   }
 }
