@@ -33,13 +33,13 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
   val dfs = new Path(path).getFileSystem(new Configuration())
 
   val stopWatch = new Stopwatch()
-  val timer = new Timer()
   var countInBatch = 0
   var last = 0l
 
   def appendEvents(i: Int): Unit = {
     val outputStream = dfs.create(new Path(path + "-" + i))
-    val bufferOfTimes = new ArrayBuffer[Long]()
+    val hflushTimes = new ArrayBuffer[Long]()
+    val writeTimes = new ArrayBuffer[Long]()
     last = System.currentTimeMillis()
     (1 to total).foreach(x => {
       val current = System.currentTimeMillis()
@@ -49,13 +49,19 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
         outputStream.hflush()
         stopWatch.stop()
         last = System.currentTimeMillis()
-        bufferOfTimes += stopWatch.elapsedMillis()
+        hflushTimes += stopWatch.elapsedMillis()
         countInBatch = 0
       }
+      stopWatch.reset()
+      stopWatch.start()
       outputStream.write(buffer)
+      stopWatch.stop()
+      writeTimes += stopWatch.elapsedMillis()
       countInBatch += 1
     })
-    println("Writes for stream " + i + ": " + bufferOfTimes.mkString(","))
+    println("Writes for stream " + i + ": " + hflushTimes.mkString(","))
+    println("Total hflush Time: " + hflushTimes.sum + " for " + hflushTimes.size + "hflushes")
+    println("Average write rate: " + ((i * total)/1024*1024)/(hflushTimes.sum + writeTimes.sum))
     outputStream.close()
   }
 }
