@@ -1,9 +1,5 @@
 package benchmarktest
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.{Timer, TimerTask}
-
 import com.google.common.base.Stopwatch
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -37,7 +33,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
   var countInBatch = 0
   var last = 0l
 
-  def appendEvents(i: Int): Unit = {
+  def appendEvents(i: Int): Double = {
     val outputStream = dfs.create(new Path(path + "-" + i))
     val hflushTimes = new ArrayBuffer[Long]()
     val writeTimes = new ArrayBuffer[Long]()
@@ -62,7 +58,10 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
     })
     println("Writes for stream " + i + ": " + hflushTimes.mkString(","))
     println("Total hflush Time: " + hflushTimes.sum + " for " + hflushTimes.size + " hflushes")
-    println("Average write rate: " + ((bufferSize * total) / (1024 * 1024)) / ((hflushTimes.sum + writeTimes.sum)/1000.0) + " MB/s")
+    val writeRate = ((bufferSize * total) / (1024 * 1024)) /
+      ((hflushTimes.sum + writeTimes.sum) / 1000.0)
+    println("Average write rate: " + writeRate + " MB/s")
     outputStream.close()
+    writeRate
   }
 }

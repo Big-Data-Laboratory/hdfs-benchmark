@@ -33,7 +33,8 @@ class TestHDFSFileAppender {
     val total = System.getProperty("total", "100000")
     val appender = new HDFSFileAppender(bufferSize.toInt, timeBetweenFlushes.toLong, path,
       total.toInt)
-    (1 to 50).foreach(appender.appendEvents(_))
+    val average = (1 to 50).map(appender.appendEvents).sum / 50
+    println("Average write rate over all 50 streams: " + average)
   }
 
 }
