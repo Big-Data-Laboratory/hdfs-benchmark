@@ -33,7 +33,7 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
   var countInBatch = 0
   var last = 0l
 
-  def appendEvents(i: Int): Double = {
+  def appendEvents(i: Int, hsync: Boolean): Double = {
     val outputStream = dfs.create(new Path(path + "-" + i))
     val hflushTimes = new ArrayBuffer[Long]()
     val writeTimes = new ArrayBuffer[Long]()
@@ -43,7 +43,11 @@ class HDFSFileAppender(val bufferSize: Int, val timeBetweenFlushes: Long, val pa
       if (current - last >= timeBetweenFlushes) {
         stopWatch.reset()
         stopWatch.start()
-        outputStream.hflush()
+        if(hsync) {
+          outputStream.hsync()
+        } else {
+          outputStream.hflush()
+        }
         stopWatch.stop()
         last = System.currentTimeMillis()
         hflushTimes += stopWatch.elapsedMillis()

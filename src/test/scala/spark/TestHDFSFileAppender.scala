@@ -31,9 +31,10 @@ class TestHDFSFileAppender {
         throw new RuntimeException("Must specify path")
       )
     val total = System.getProperty("total", "100000")
+    val hsync = System.getProperty("hsync", "false").toBoolean
     val appender = new HDFSFileAppender(bufferSize.toInt, timeBetweenFlushes.toLong, path,
       total.toInt)
-    val average = (1 to 50).map(appender.appendEvents).sum / 50
+    val average = (1 to 50).map(appender.appendEvents(_, hsync)).sum / 50
     println("Average write rate over all 50 streams: " + average)
   }
 
